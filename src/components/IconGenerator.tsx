@@ -13,7 +13,10 @@ import {
   useToast,
   Link,
   Flex,
+  ButtonGroup,
 } from '@chakra-ui/react';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 interface IconSize {
   size: number;
@@ -34,6 +37,7 @@ const iosSizes: IconSize[] = [
 export const IconGenerator = () => {
   const [sourceImage, setSourceImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [generatedIcons, setGeneratedIcons] = useState<{ name: string, url: string }[]>([]);
   const toast = useToast();
@@ -174,6 +178,65 @@ export const IconGenerator = () => {
     });
   };
 
+  const dataURLtoBlob = (dataURL: string): Blob => {
+    const arr = dataURL.split(',');
+    const mime = arr[0].match(/:(.*?);/)![1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    
+    return new Blob([u8arr], { type: mime });
+  };
+
+  const downloadAsZip = async () => {
+    if (generatedIcons.length === 0) return;
+
+    setIsDownloading(true);
+    
+    try {
+      const zip = new JSZip();
+      const iconsFolder = zip.folder('app-icons');
+      
+      if (iconsFolder) {
+        // Add all icons to the zip file
+        generatedIcons.forEach(({ name, url }) => {
+          const sanitizedName = name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+          const blob = dataURLtoBlob(url);
+          iconsFolder.file(`${sanitizedName}.png`, blob);
+        });
+        
+        // Generate the zip file
+        const content = await zip.generateAsync({ type: 'blob' });
+        
+        // Save the zip file
+        saveAs(content, 'app-icons.zip');
+        
+        toast({
+          title: 'Download Complete',
+          description: 'Your icons have been downloaded as a ZIP file.',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      console.error('Error creating ZIP file:', error);
+      toast({
+        title: 'Download Failed',
+        description: 'Could not create ZIP file. Please try again.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <Container maxW="container.xl" py={8}>
       <Stack spacing={8}>
@@ -251,7 +314,22 @@ export const IconGenerator = () => {
           <Box>
             <Flex justifyContent="space-between" alignItems="center" mb={4}>
               <Heading size="md">Generated Icons</Heading>
-              <Button colorScheme="green" onClick={downloadAllIcons}>Download All</Button>
+              <ButtonGroup>
+                <Button 
+                  colorScheme="green" 
+                  onClick={downloadAllIcons}
+                >
+                  Download All
+                </Button>
+                <Button 
+                  colorScheme="teal" 
+                  onClick={downloadAsZip}
+                  isLoading={isDownloading}
+                  loadingText="Creating ZIP..."
+                >
+                  Download as ZIP
+                </Button>
+              </ButtonGroup>
             </Flex>
             <Grid templateColumns={{ base: '1fr', md: '1fr 1fr', lg: '1fr 1fr 1fr' }} gap={4}>
               {generatedIcons.map((icon, index) => (

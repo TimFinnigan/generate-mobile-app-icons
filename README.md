@@ -9,6 +9,7 @@ A modern, browser-based application for generating mobile app icons for iOS and 
 - Creates Android adaptive icons
 - Preview generated icons in the browser
 - Download individual icons or all at once
+- Download all icons as a ZIP file
 - Client-side processing (no server required)
 
 ## Getting Started
@@ -41,7 +42,7 @@ npm run dev
 2. Click the "Generate Icons" button
 3. Wait for the icons to be generated
 4. Preview the generated icons
-5. Download individual icons or click "Download All" to get all icons at once
+5. Download individual icons, all icons, or get them all in a convenient ZIP file
 
 ## Icon Sizes Generated
 
@@ -65,6 +66,8 @@ npm run dev
 - [TypeScript](https://www.typescriptlang.org/) - Language
 - [Chakra UI](https://chakra-ui.com/) - UI components
 - [react-dropzone](https://react-dropzone.js.org/) - File uploads
+- [JSZip](https://stuk.github.io/jszip/) - ZIP file generation
+- [FileSaver.js](https://github.com/eligrey/FileSaver.js/) - Client-side file saving
 
 ## License
 
